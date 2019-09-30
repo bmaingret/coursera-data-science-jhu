@@ -8,7 +8,7 @@
 
 * activity
   * Type: factor
-  * Unit: String factor with 6 levels (encoded in the text file with the level and the label)
+  * Unit: String factor with 6 levels
   * Description: Identifies an activity as one of
     1. WALKING
     2. WALKING_UPSTAIRS

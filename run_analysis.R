@@ -114,4 +114,4 @@ tidy_data <- data %>%
   group_by(subject, activity) %>%
   summarise_each(list(mean=mean))
 
-write.table(tidy_data, TIDY_FILE_PATH)
+write.table(tidy_data, TIDY_FILE_PATH, row.name=FALSE)

@@ -97,7 +97,7 @@ We replaced `-` and `()` with `_` for better compatibility in export/import.
 
 ### 5. From the data set in step 4, create a second, independent tidy data set with the average of each variable for each activity and each subject
 This dataset only includes the average of each kept variables for each activity and each subject, and is in the wide format.
-This dataset is saved on disk at the path indicated in the variable `TIDY_FILE_PATH` with plain `write.table()`.
+This dataset is saved on disk at the path indicated in the variable `TIDY_FILE_PATH` with `write.table(tidy_data, TIDY_FILE_PATH, row.name=FALSE)`.
 
 
 ## Additional Data Set Information from [UCI Machine Learning Repository](http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones)
