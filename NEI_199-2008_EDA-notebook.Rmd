@@ -1,15 +1,16 @@
 ---
-title: "R Notebook: EDA of NEI records of PM2.5 for 1999, 2002, 2005, and 2008 (part
-  of Exploratory Data Analysis by Johns Hopkins University)"
+title: "Assignement: EDA of NEI records of PM2.5"
 output:
-  html_document:
-    df_print: paged
+  github_document:
+    html_preview: false
+
 ---
 
-
+## EDA of NEI records of PM2.5 for 1999, 2002, 2005, and 2008 (part of Exploratory Data Analysis by Johns Hopkins University)
+This assignement focused only on plots as part of EDA. We did not checked for erroneous/missing data.
 Source code available on [GitHub](https://github.com/bmaingret/NEI_199-2008_EDA)
 
-```{r Libraries and loading data, echo=FALSE, warning=FALSE}
+```{r Libraries and loading data, echo=FALSE, warning=FALSE, results='hide', message=FALSE}
 library(tidyr)
 library(dplyr)
 library(readr)
@@ -162,6 +163,7 @@ ggsave("plot4.png")
 ```
 
 ### 5. How have emissions from motor vehicle sources changed from 1999–2008 in Baltimore City?
+
 
 **Hypothesis:** We consider that those emissions are represented by the type *onroad* considering the information for [epa.gov](https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei) : "NEI onroad sources include emissions from onroad vehicles that use gasoline, diesel, and other fuels"
 
