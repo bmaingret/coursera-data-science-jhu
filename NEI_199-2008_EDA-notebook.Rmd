@@ -1,0 +1,252 @@
+---
+title: R NotebookEDA of NEI records of PM2.5 for 1999, 2002, 2005, and 2008 (part
+  of Exploratory Data Analysis by Johns Hopkins University)
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r Libraries and loading data, echo=FALSE}
+library(tidyr)
+library(dplyr)
+library(readr)
+library(ggplot2)
+
+
+source("load_data.R")
+if (!exists("NEI")){
+  data <- load_data()
+  NEI <- data[["NEI"]]
+  SCC <- data[["SCC"]]
+}
+```
+
+## Quick look at the data
+
+```{r}
+NEI <- as_tibble(NEI)
+SCC <- as_tibble(SCC)
+str(NEI)
+str(SCC)
+```
+
+The NEI data is the amount of a specific *Pollutant* for a specific source *SCC* for a *year* in a county indicated by its *FIPS* code.
+The *type* represents the type of the emission sources as described [here](https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei).
+
+
+Let's factorize the string values for NEI and check a summary of the NEI.
+```{r}
+NEI$fips <- parse_factor(NEI$fips)
+NEI$SCC <- parse_factor(NEI$SCC, levels = levels(SCC$SCC))
+NEI$Pollutant <- parse_factor(NEI$Pollutant)
+NEI$type <- parse_factor(NEI$type)
+NEI$year <- parse_factor(as.character(NEI$year))
+summary(NEI)
+```
+
+Similar summary for SCC.
+
+```{r}
+summary(SCC)
+```
+
+Some values seems missing. Quick overview.
+
+```{r}
+summary(is.na(SCC))
+```
+
+
+## Binding the two dataframes
+
+```{r}
+data <- NEI %>%
+  left_join(SCC, by = c("SCC" = "SCC"))
+str(data)
+```
+
+## Answering questions with plots
+
+### 1. Have total emissions from PM2.5 decreased in the United States from 1999 to 2008? 
+
+*Using base plotting system*
+total PM2.5 emission from all sources for each of the years 1999, 2002, 2005, and 2008
+```{r Data preparation for Q1}
+
+totals <- data %>% group_by(year) %>%
+  summarise(total = sum(Emissions)/10^6)
+```
+
+```{r Data plotting for Q1}
+barplot(totals$total, 
+        names.arg = totals$year, 
+        main = "Emission in millions of tons of PM2.5 from all sources for \n each of the years 1999, 2002, 2005, and 2008",
+        xlab = "Year",
+        ylab = "Emission of PM2.5 in millions of tons",
+        ylim = c(0,8))
+abline(lm( totals$total ~as.numeric(totals$year)), col="red")
+dev.print(device = png, file = "plot1.png", width = 500, pointsize=10)
+```
+
+### 2. Have total emissions from PM2.5 decreased in the Baltimore City, Maryland *(fips == "24510")* from 1999 to 2008? 
+
+*Using base plotting system*
+
+```{r Data preparation for Q2}
+totals_baltimore <- data %>% filter(fips == "24510") %>%
+  group_by(year) %>%
+  summarise(total = sum(Emissions))
+```
+
+
+```{r Data plotting for Q2}
+barplot(totals_baltimore$total, 
+        names.arg = totals_baltimore$year, 
+        main = "Emission in tons of PM2.5 from all sources of Baltimore City \n each of the years 1999, 2002, 2005, and 2008",
+        xlab = "Year",
+        ylab = "Emission of PM2.5 in tons",
+        ylim = (c(0,4000)))
+
+abline(lm( totals_baltimore$total ~as.numeric(totals_baltimore$year)), col="red")
+dev.print(device = png, file = "plot2.png", width = 500, pointsize=10)
+```
+
+
+### 3. Of the four types of sources indicated by the *type (point, nonpoint, onroad, nonroad)* variable, which of these four sources have seen decreases in emissions from 1999–2008 for Baltimore City? Which have seen increases in emissions from 1999–2008?
+
+
+*Using ggplot2 plotting system*
+
+```{r Data preparation for Q3}
+totals_baltimore_type <- data %>% filter(fips == "24510") %>%
+  group_by(type, year) %>%
+  summarise(total = sum(Emissions)) %>%
+  mutate(year=as.numeric(levels(year))[year])
+```
+
+
+```{r Data plotting for Q3}
+g<-ggplot(totals_baltimore_type) + geom_col(aes(x = year, y = total)) + geom_smooth(method = lm, aes(x = year, y = total), se = FALSE) + facet_grid(rows=vars(type), scales = "free_y")
+g <- g + labs(x="Year", y ="Tons of PM2.5", title="Emission for the four types of sources")
+g <- g + coord_cartesian(xlim=c(1999,2008))
+print(g)
+```
+```{r echo=FALSE}
+ggsave("plot3.png")
+```
+
+
+### 4. Across the United States, how have emissions from coal combustion-related sources changed from 1999–2008?
+
+
+```{r Data preparation for Q4}
+totals_coal <- data %>% filter(EI.Sector == "Fuel Comb - Comm/Institutional - Coal") %>%
+  group_by(year) %>%
+  summarise(total = sum(Emissions)) %>%
+  mutate(year=as.numeric(levels(year))[year])
+
+```
+
+
+```{r Data plotting for Q4}
+g <- ggplot(totals_coal) + geom_col(aes(x = year, y = total)) + geom_smooth(method = lm, aes(x = as.numeric(year), y = total), se = FALSE)
+g <- g + labs(x="Year", y ="Tons of PM2.5", title="PM2.5 Emission for coal-combustion (in tons)")
+g <- g + coord_cartesian(xlim=c(1999,2008))
+print(g)
+```
+```{r echo=FALSE}
+ggsave("plot4.png")
+```
+
+### 5. How have emissions from motor vehicle sources changed from 1999–2008 in Baltimore City?
+
+**Hypothesis:** We consider that those emissions are represented by the type *onroad* considering the information for [epa.gov](https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei) : "NEI onroad sources include emissions from onroad vehicles that use gasoline, diesel, and other fuels"
+
+
+
+```{r Data preparation for Q5}
+totals_vehicle <- data %>% filter(type=="ON-ROAD", fips=="24510") %>%
+  group_by(year) %>%
+  summarise(total = sum(Emissions)) %>%
+  mutate(year=as.numeric(levels(year))[year])
+```
+
+
+
+
+```{r Data plotting for Q5}
+g <- ggplot(totals_vehicle) + geom_col(aes(x = year, y = total)) + geom_smooth(method = lm, aes(x = year, y = total), se = FALSE)
+g <- g + labs(x="Year", y ="Tons of PM2.5", title="PM2.5 Emission for motor vehicles sources (in tons)")
+g <- g + coord_cartesian(xlim=c(1999,2008),ylim=c(0,400))
+print(g)
+```
+
+```{r echo=FALSE}
+ggsave("plot5.png")
+```
+
+### 6. Compare emissions from motor vehicle sources in Baltimore City with emissions from motor vehicle sources in Los Angeles County, California *fips=="06037"*. Which city has seen greater changes over time in motor vehicle emissions?
+
+
+```{r Data preparation for Q6}
+totals_vehicle_comp <- data %>% filter(type=="ON-ROAD", fips=="24510" | fips=="06037") %>%
+  group_by(fips,year) %>%
+  summarise(total = sum(Emissions)) %>%
+  mutate(year=as.numeric(levels(year))[year])
+```
+
+```{r echo=FALSE}
+# GET EQUATION AND R-SQUARED AS STRING
+# SOURCE: https://stackoverflow.com/questions/7549694/add-regression-line-equation-and-r2-on-graph
+
+lm_eqn <- function(df, y, x){
+    formula = as.formula(sprintf('%s ~ %s', y, x))
+    m <- lm(formula, data=df);
+    # formating the values into a summary string to print out
+    # ~ give some space, but equal size and comma need to be quoted
+    eq <- substitute(italic(target) == a + b %.% italic(input)*","~~italic(r)^2~"="~r2*","~~p~"="~italic(pvalue), 
+         list(target = y,
+              input = x,
+              a = format(as.vector(coef(m)[1]), digits = 2), 
+              b = format(as.vector(coef(m)[2]), digits = 2), 
+             r2 = format(summary(m)$r.squared, digits = 3),
+             # getting the pvalue is painful
+             pvalue = format(summary(m)$coefficients[2,'Pr(>|t|)'], digits=5)
+            )
+          )
+    as.character(as.expression(eq));                 
+}
+```
+
+
+
+```{r Data plotting for Q6}
+g <- ggplot(totals_vehicle_comp, aes(x = year, y = total, fill=fips))
+g <- g + geom_col(position="dodge")
+g <- g + geom_smooth(se = FALSE, method = lm)
+g <- g + coord_cartesian(xlim=c(1998,2009.5),ylim=c(0,5500))
+g <- g + geom_text(aes(x = 1999, y = 5250, hjust="left",label = paste("Baltimore: ", lm_eqn(totals_vehicle_comp %>% filter(fips=="24510"), "total", "year"))), parse = TRUE)
+g <- g + geom_text(aes(x = 1999, y = 5000, hjust="left", label = paste("LA: ", lm_eqn(totals_vehicle_comp %>% filter(fips=="06037"), "total", "year"))), parse = TRUE)
+g <- g + scale_fill_discrete(name="County", labels=c("Baltimore City", "Los Angeles County"), aesthetics = c("colour", "fill"))
+g <- g + labs(x="Year", y ="Tons of PM2.5", title="PM2.5 Emission for motor vehicles sources in Baltimore City and Los Angeles County (in tons)")
+print(g)
+```
+```{r echo=FALSE}
+ggsave("plot6.png")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
