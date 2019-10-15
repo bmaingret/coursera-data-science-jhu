@@ -1,13 +1,15 @@
 ---
-title: R NotebookEDA of NEI records of PM2.5 for 1999, 2002, 2005, and 2008 (part
-  of Exploratory Data Analysis by Johns Hopkins University)
+title: "R Notebook: EDA of NEI records of PM2.5 for 1999, 2002, 2005, and 2008 (part
+  of Exploratory Data Analysis by Johns Hopkins University)"
 output:
   html_document:
     df_print: paged
 ---
 
 
-```{r Libraries and loading data, echo=FALSE}
+Source code available on [GitHub](https://github.com/bmaingret/NEI_199-2008_EDA)
+
+```{r Libraries and loading data, echo=FALSE, warning=FALSE}
 library(tidyr)
 library(dplyr)
 library(readr)
@@ -66,12 +68,12 @@ data <- NEI %>%
 str(data)
 ```
 
-## Answering questions with plots
+## Answering assignement's questions with plots
 
 ### 1. Have total emissions from PM2.5 decreased in the United States from 1999 to 2008? 
 
 *Using base plotting system*
-total PM2.5 emission from all sources for each of the years 1999, 2002, 2005, and 2008
+
 ```{r Data preparation for Q1}
 
 totals <- data %>% group_by(year) %>%
