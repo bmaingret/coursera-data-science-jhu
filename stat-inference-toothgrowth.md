@@ -91,6 +91,9 @@ to reject the null hypothesis in this case.
 
 ### Has the dose an impact on tooth growth?
 
+We test the difference in means between each dosage (3 tests: 0.05 vs 1,
+0.5 vs 2, 1 vs 2).
+
 ``` r
 n = 10
 x = tg[tg$dose=="0.5", "len"]
@@ -124,7 +127,7 @@ t.res.c <- t.test(x, y, alternative = "two.sided", mu = 0, paired = FALSE, var.e
 p.res.c <- power.t.test(n, delta, p.sd, sig.level=0.05, type="two.sample", alternative="two.sided")
 ```
 
-    ##                        dose.0.5        dose.1        dose.2
+    ##                      dose.0.5v1    dose.0.5v2      dose.1v2
     ## p-value            1.266297e-07  2.837553e-14  1.810829e-05
     ## conf-interval-low -1.198375e+01 -1.815352e+01 -8.994387e+00
     ## conf-interval-up  -6.276252e+00 -1.283648e+01 -3.735613e+00

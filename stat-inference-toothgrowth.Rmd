@@ -74,6 +74,8 @@ We have a p-value (`r t.res$p.value*100`%) larger the 5% and in addition the con
 
 ### Has the dose an impact on tooth growth?
 
+We test the difference in means between each dosage (3 tests: 0.05 vs 1, 0.5 vs 2, 1 vs 2).
+
 ```{r}
 n = 10
 x = tg[tg$dose=="0.5", "len"]
@@ -113,7 +115,7 @@ a <- c(t.res.a$p.value, t.res.a$conf.int, p.res.a$power)
 b <- c(t.res.b$p.value, t.res.b$conf.int, p.res.b$power)
 c <- c(t.res.c$p.value, t.res.c$conf.int, p.res.c$power)
   
-results <- data.frame(dose.0.5=a,dose.1=b, dose.2=c,row.names = c("p-value", "conf-interval-low", "conf-interval-up", "power"))
+results <- data.frame(dose.0.5v1=a,dose.0.5v2=b, dose.1v2=c,row.names = c("p-value", "conf-interval-low", "conf-interval-up", "power"))
 results["p-value",] <- results["p-value",]
 results
 ```
