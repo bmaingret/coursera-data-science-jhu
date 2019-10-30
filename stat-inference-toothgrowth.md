@@ -13,7 +13,7 @@ Specialization](https://www.coursera.org/specializations/jhu-data-science).
 <!--more-->
 
 Source code available on
-[GitHub](https://github.com/bmaingret/eda-storm-data)
+[GitHub](https://github.com/bmaingret/stat-inference-project)
 
 ## Overview
 

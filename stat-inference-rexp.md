@@ -13,7 +13,7 @@ Specialization](https://www.coursera.org/specializations/jhu-data-science).
 <!--more-->
 
 Source code available on
-[GitHub](https://github.com/bmaingret/eda-storm-data)
+[GitHub](https://github.com/bmaingret/stat-inference-project)
 
 ## Overview
 
@@ -71,7 +71,7 @@ qplot(exp.mean) + geom_vline(xintercept=theory.mean.mean, color="red") +
 From the CLT, the theoritical mean is \(\frac{1}{\lambda}=5\),
 represented by the **red** line on the graph above.
 
-The empirical mean is *4.9856209*, represented by the **blue** line on
+The empirical mean is *5.0467217*, represented by the **blue** line on
 the graph above, which is very close to the theoritical mean.
 
 ## Sample mean variance versus theory
@@ -81,7 +81,7 @@ We can have a look at the variance of the means.
 From the CLT, the theoritical var is \(\frac{1}{\lambda^2*n}=0.625\),
 represented by the **red** line on the graph above.
 
-The empirical var is *0.6099441*, represented by the **blue** line on
+The empirical var is *0.6310375*, represented by the **blue** line on
 the graph above, which is very close to the theoritical var
 
 ## Distribution: is it normal?
