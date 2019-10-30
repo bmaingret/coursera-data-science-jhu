@@ -1,0 +1,126 @@
+---
+title: "Effect of Vitamin C on Tooth Growth in Guinea Pigs"
+author: "Baptiste Maingret"
+category: [datascience, assignement]
+tags: [R, EDA, Data Science, Coursera, Plot, Statistics]
+output: 
+  github_document: default
+  pdf_document: default
+---
+
+
+
+## Basic Inferential Data Analysis on ToothGrowth dataset (part of Statistical Inference by Johns Hopkins University)
+
+This assignment was part of the Johns Hopkins Coursera module on
+[Statistical Inference](https://www.coursera.org/learn/statistical-inference) as part
+of the [Data Science
+Specialization](https://www.coursera.org/specializations/jhu-data-science).
+
+<!--more-->
+
+Source code available on [GitHub](https://github.com/bmaingret/eda-storm-data)
+
+## Overview
+
+The goal is to conduct some simple hypothesis testing on the ToothGrowth dataset available in the R datasets package.
+
+Some assumptions:
+
+  * equal variances among groups
+  * standard deviation estimated from the samples
+  * $\alpha$ is set to 5%
+  * samples are not paired
+
+## Data processing
+
+We import the data and directly set the *dose* as a factor.
+```{r}
+library(ggplot2)
+library(datasets)
+tg <- datasets::ToothGrowth
+tg$dose <- as.factor(tg$dose)
+```
+
+
+Glimpse at data.
+```{r}
+str(tg)
+summary(tg)
+```
+
+Some plots.
+
+```{r}
+  qplot(x=len, data=tg, color=dose, group = dose, geom = "density", facets = dose ~ supp)
+```
+
+### Has the delivery method an impact on tooth growth?
+
+We will test in regards of the null-hypothesis that their is no difference in means between the two groups.
+
+```{r}
+n = 10
+x = tg[tg$supp=="OJ", "len"]
+y = tg[tg$supp=="VC", "len"]
+delta = mean(x) - mean(y)
+p.sd = sqrt((var(x)+var(y))/2)
+
+t.res <- t.test(x, y, alternative = "two.sided", mu = 0, paired = FALSE, var.equal = TRUE)
+p.res <- power.t.test(n, delta, p.sd, sig.level=0.05, type="two.sample", alternative="two.sided")
+```
+
+We have a p-value (`r t.res$p.value*100`%) larger the 5% and in addition the confidence interval (`r t.res$conf.int`) covers the value 0. We fail to reject the null hypothesis in this case.
+
+### Has the dose an impact on tooth growth?
+
+```{r}
+n = 10
+x = tg[tg$dose=="0.5", "len"]
+y = tg[tg$dose=="1", "len"]
+delta = mean(x) - mean(y)
+p.sd = sqrt((var(x)+var(y))/2)
+
+t.res.a <- t.test(x, y, alternative = "two.sided", mu = 0, paired = FALSE, var.equal = TRUE)
+p.res.a <- power.t.test(n, delta, p.sd, sig.level=0.05, type="two.sample", alternative="two.sided")
+```
+
+
+```{r}
+n = 10
+x = tg[tg$dose=="0.5", "len"]
+y = tg[tg$dose=="2", "len"]
+delta = mean(x) - mean(y)
+p.sd = sqrt((var(x)+var(y))/2)
+
+t.res.b <- t.test(x, y, alternative = "two.sided", mu = 0, paired = FALSE, var.equal = TRUE)
+p.res.b <- power.t.test(n, delta, p.sd, sig.level=0.05, type="two.sample", alternative="two.sided")
+```
+
+
+```{r}
+n = 10
+x = tg[tg$dose=="1", "len"]
+y = tg[tg$dose=="2", "len"]
+delta = mean(x) - mean(y)
+p.sd = sqrt((var(x)+var(y))/2)
+
+t.res.c <- t.test(x, y, alternative = "two.sided", mu = 0, paired = FALSE, var.equal = TRUE)
+p.res.c <- power.t.test(n, delta, p.sd, sig.level=0.05, type="two.sample", alternative="two.sided")
+```
+```{r echo=FALSE}
+a <- c(t.res.a$p.value, t.res.a$conf.int, p.res.a$power)
+b <- c(t.res.b$p.value, t.res.b$conf.int, p.res.b$power)
+c <- c(t.res.c$p.value, t.res.c$conf.int, p.res.c$power)
+  
+results <- data.frame(dose.0.5=a,dose.1=b, dose.2=c,row.names = c("p-value", "conf-interval-low", "conf-interval-up", "power"))
+results["p-value",] <- results["p-value",]
+results
+```
+
+
+## Conclusions
+
+We failed to reject the null-hypothesis regarding the impact of the delivery method on tooth growth.
+
+The dosage was found to be statistically significant and tests rejected the null-hypothesis.
