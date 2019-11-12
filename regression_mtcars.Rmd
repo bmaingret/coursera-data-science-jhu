@@ -3,9 +3,8 @@ title: "Motor Trend Car Road Tests (mtcars) datasets - Analysis and Regression"
 author: "Baptiste Maingret"
 date: "08/11/2019"
 output:
-  pdf_document: default
   github_document: default
-
+  pdf_document: default
 tags:
 - R
 - EDA
@@ -15,7 +14,6 @@ tags:
 category:
 - datascience
 - assignement
-
 ---
 
 ## Motor Trend Car Road Tests (mtcars) datasets - Analysis and Regression
