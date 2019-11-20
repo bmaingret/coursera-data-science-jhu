@@ -1,0 +1,44 @@
+---
+title: "Blood donation in France"
+author: "Baptiste Maingret"
+date: "20/11/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(jsonlite)
+library(leaflet)
+```
+
+# Getting data
+```{r}
+URL <- "http://api.openeventdatabase.org/event/?what=health.blood.collect&when=nextmonth&limit=1000"
+download.file(URL, "./data/data.json", method="libcurl")
+con <- file("./data/data.json")
+data <- fromJSON(readLines(con), simplifyDataFrame = TRUE, flatten = TRUE)
+close(con)
+```
+## Preping data
+```{r}
+map_data <- data.frame(lat=data$features$properties.lat,
+                       lng = data$features$properties.lon,
+                       label = data$features$`properties.where:name`,
+                       popup = data$features$properties.star)
+```
+
+## Preping map
+```{r}
+my_map <- leaflet() %>%
+  addTiles() %>%
+  addMarkers(lat = map_data$lat, lng = map_data$lng, label = map_data$label, popup = map_data$popup)
+
+```
+
+## Blood donation for the next month (`r format(Sys.time(), "%d-%m-%Y")`)
+```{r echo=FALSE}
+my_map
+```
+
+
