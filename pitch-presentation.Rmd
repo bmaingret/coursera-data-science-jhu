@@ -1,0 +1,74 @@
+---
+title: "Developing Data Products Project - France Birth Data"
+author: "Baptiste Maingret"
+date: "20/11/2019"
+output: 
+  ioslides_presentation: 
+    smaller: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Purpose and functionning
+
+### Purpose
+The goal of this application is to see the evolution of the France birth rate and be able to quickly visualize high birth rate region on a map for a particular year.
+
+### Functionning
+
+The user can select the year to select the data to be displayed on the map.
+
+At any time the user can see the overall plot of the data on the chart below the slider.
+
+
+## Data set
+
+All data preprocessing can be found in the *data_process.R* file.
+
+### Birth data
+
+Data comes from the French national agency for statistics [INSEE](https://www.insee.fr/fr/statistiques/series/102928992).
+
+It came as multiple files, so some preprocessing was required.
+
+### Regions data
+
+To be able to draw the regions on maps a file describing the contour of each regions was required.
+The region polygons can be found on [GitHub](https://raw.githubusercontent.com/gregoiredavid/france-geojson).
+
+
+
+## Plotting geographical regions on map
+
+The plotting of the regions was a good challenge.
+
+It requires a specific file format (geojson), a specific library(geojsonio) to generate an object of the *Spatial class*:
+
+```{r echo=TRUE, eval=FALSE}
+  regions <- geojson_read("https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions-version-simplifiee.geojson", what="sp")
+```
+
+The plotting thanks to leaflet was also challenging, especially to be able to dynamically change the year of the data to be displayed.
+```{r echo=TRUE, eval=FALSE}
+leaflet(regions) %>%
+            addTiles() %>%
+            addPolygons(
+                stroke = FALSE,
+                smoothFactor = 0.3,
+                fillOpacity = 1,
+                fillColor = as.formula(paste0("~pal(y", input$year, ")")),
+                label = as.formula(paste0("~paste0(y", input$year, ")"))
+            ) 
+```
+
+
+## Improvements
+
+Some possible future improvements
+
+  * Animated maps that scroll automatically through the year
+  * Regression model fitted to the data to have quantitive information on evolution
+  * Add death data and be able to switch between the two
+  
