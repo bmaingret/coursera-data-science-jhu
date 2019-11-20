@@ -2,22 +2,29 @@
 title: "Birth data in France"
 author: "Baptiste Maingret"
 date: "20/11/2019"
-output: ioslides_presentation
+output: 
+  ioslides_presentation: 
+    smaller: yes
+    widescreen: yes
 ---
 
 ```{r setup, include=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 
-library(plotly)
 ```
+
+```{r warning=FALSE, message=FALSE}
+library(plotly)
+
+RAW_PATH = "./data/raw"
+PROCESSED_PATH = "./data/processed"
+```
+
 
 ## Getting the data
 
 Data downloaded from [INSEE.FR](https://www.insee.fr/fr/statistiques/series/102928992).
-```{r}
-RAW_PATH = "./data/raw"
-PROCESSED_PATH = "./data/processed"
-
+```{r warning=FALSE, message=FALSE, results='hide', echo=TRUE}
 zip_files <- list.files(RAW_PATH, full.names = TRUE)
 zip_dir <- tools::file_path_sans_ext(zip_files)
 sapply(zip_dir, dir.create)
@@ -25,7 +32,7 @@ sapply(zip_files, function(x) unzip(x, exdir = tools::file_path_sans_ext(x), jun
 
 get_region <- function(path){
   tmp <- read.csv2(file.path(path, "caract.csv"), encoding = "UTF-8", nrows = 2, as.is = TRUE)
-  tmp$Zone.géographique[[1]]
+  tmp["Zone.géographique"][[1]]
 }
 
 format_data <- function(path){
@@ -36,41 +43,19 @@ format_data <- function(path){
 
 data <- lapply(zip_dir, format_data)
 data <- do.call(rbind.data.frame, data)
-data
+saveRDS(data, file.path(PROCESSED_PATH, "birth_data.rds"))
+# data <- readRDS(file.path(PROCESSED_PATH, "birth_data.rds"))
 ```
 
-## Getting France geojson
+## Birth in France over 40 years
 
 ```{r}
-URL <- "https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions-version-simplifiee.geojson"
-geojson <- fromJSON(URL)
-geojson$features$id <- geojson$features$properties$nom
-write(toJSON(geojson), file.path(PROCESSED_PATH, "geojson.json")
-```
+p <- plot_ly(type = 'bar', orientation = 'v') %>%
+  layout(barmode = 'stack')
 
+for (region in unique(data$region)) {
+  p <- p %>% add_trace(data=data[data$region==region,], x = ~year, y = ~value, name=region)
+}
 
-## Plot 1
-
-```{r}
-p <- plot_geo() %>%
-  add_trace(
-    type = "choroplethmapbox",
-    geojson = geojson,
-    locations=data$region,
-    z = data$value
-  ) 
 p
 ```
-
-## Slide with R Output
-
-```{r cars, echo = TRUE}
-summary(cars)
-```
-
-## Slide with Plot
-
-```{r pressure}
-plot(pressure)
-```
-
