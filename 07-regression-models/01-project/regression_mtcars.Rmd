@@ -1,0 +1,212 @@
+---
+title: "Motor Trend Car Road Tests (mtcars) datasets - Analysis and Regression"
+author: "Baptiste Maingret"
+date: "08/11/2019"
+output:
+  github_document: default
+  pdf_document: default
+tags:
+- R
+- EDA
+- Data Science
+- Coursera
+- Plot
+category:
+- datascience
+- assignement
+---
+
+## Motor Trend Car Road Tests (mtcars) datasets - Analysis and Regression
+
+This assignment was part of the Johns Hopkins Coursera module on
+[Regression Models](https://www.coursera.org/learn/regression-models) as part
+of the [Data Sciene
+Specialization](https://www.coursera.org/specializations/jhu-data-science).
+
+<!--more-->
+
+Source code available on
+[GitHub](https://github.com/bmaingret/regression-models-project)
+
+
+```{r echo=FALSE, message=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(corrplot)
+library(GGally)
+```
+
+## Summary
+
+We want to answer these two questions:
+
+* Is an automatic or manual transmission better for MPG?
+* Quantify the MPG difference between automatic and manual transmissions?
+
+We compared the mean mpg for automatic and manual transmission and concluded the difference in favor of manual tranmission in terms of mpg was significant. We then looked further to check other variables to explain the difference in mpg.
+
+## Look at the data
+
+```{r echo=FALSE}
+# Factorizing the transmission type and engine type.
+mtcars <- datasets::mtcars
+mtcars$am <- as.factor(mtcars$am)
+levels(mtcars$am)<-c("automatic","manual")
+mtcars$vs <- as.factor(mtcars$vs)
+levels(mtcars$vs)<-c("v.shaped","straight")
+
+mtcars %>% 
+  mutate(mean.mpg = mean(mpg)) -> mtcars
+
+auto <- mtcars%>%filter(am=='automatic')%>%pull(mpg)
+manual <- mtcars%>%filter(am=='manual')%>%pull(mpg)
+```
+
+Glimpse at the data.
+```{r echo=FALSE}
+head(mtcars, n = 3)
+summary(mtcars[,1:11])
+```
+
+## MPG difference between automatic and manual transmission
+
+```{r message=FALSE, echo=FALSE}
+ggpairs(as.data.frame(mtcars[,c('mpg','am')]), progress=FALSE, aes(color=am))
+
+```
+
+Looking at the boxplot we see a difference between the two transmission type's mpg.
+
+We check normality, variance equality to see how we can conduct our test (details in appendix), and then conducted a two-sided T-Test:
+
+```{r}
+
+mpg.test <- t.test(auto, manual, alternative="two.sided", paired=FALSE, var.equal = FALSE)
+```
+
+
+We have a p-value of `r paste(format(mpg.test$p.value*100, digits=2), "%", sep="") ` < 5%, and a confidence interval [`r paste(format(mpg.test$conf.int[1], digits=2),format(mpg.test$conf.int[2], digits=2), sep=" ; " )`] for the difference of mean mpg between automatic and manual excluding 0.
+
+From the look of this manual transmission allows for more mpg with `r format(mpg.test$estimate[1]-mpg.test$estimate[1], digits=2)` more mpg in average.
+
+
+If we fit a simple linear model to our data we end up with similar results as previously (increased of roughly 7.2 mpg), and we can have a look at the residual plot, which are alost normal (graphically speaking) for automatic but not as much for manual.
+Looking at the reisudals against several other possible predictors, we can see some linear trends (e.g. hp and wt).
+
+
+## Going further
+
+
+Looking at pairplot and correlation plot we see that other variables since more correlated with mpg than am.
+```{r message=FALSE}
+ggpairs(mtcars, aes(colour = am), columns = seq(1,11,1),
+        progress=FALSE, upper = list(continuous = wrap("cor", size = 3)))
+
+mtcars.cor <- cor(mtcars %>% mutate(am=as.numeric(am), vs=as.numeric(vs)) %>% select(-c(mean.mpg)))
+corrplot(mtcars.cor, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+```
+
+### Adding variables to our model
+We can try to add wt, cyl and disp wich seems to be relevant candidates both from mechanical point of view and from the corrplot.
+
+```{r}
+rownames(mtcars) <- rownames(datasets::mtcars)
+fit2<-lm(mpg~I(hp/10)+wt+cyl+disp+am,mtcars)
+summary(fit2)
+```
+
+Only weight, hp and tranmission type seems significant. 
+
+### Modelling withough transmission type
+
+```{r}
+fit3<-lm(mpg~I(hp/10)+wt+cyl+disp,mtcars)
+summary(fit3)
+anova(fit2,fit3)
+```
+
+We see we have similar R-square, RSS and p-value while droping the transmission type.
+
+
+### Automatic model selection 
+
+Let's try some automatic model selection to see what we could get.
+
+```{r}
+library(MASS)
+# Fit the full model 
+full.model <- lm(mpg ~., data = datasets::mtcars)
+# Stepwise regression model
+step.model <- stepAIC(full.model, direction = "both", 
+                      trace = FALSE)
+summary(step.model)
+```
+
+We find again wt and am which confort us in our previous models. We also have an additional variable that we did not explore before: qsec.
+
+We can however argue that qsec is strongly correlated with horsepower (and cylinder, displacement, etc.)
+
+### Some PCA
+
+```{r}
+library("FactoMineR")
+library("factoextra")
+
+res.pca <- PCA(datasets::mtcars, scale.unit = TRUE, ncp = 5, graph = FALSE)
+
+
+fviz_pca_var(res.pca, col.var = "cos2", repel = TRUE)
+fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
+
+fviz_contrib(res.pca, choice = "var", axes = 1, top = 10)
+fviz_contrib(res.pca, choice = "var", axes = 2, top = 10)
+
+```
+
+
+
+## Normality and variance
+### Normality of data
+```{r echo=FALSE}
+qplot(sample=mpg, data=mtcars, color=am)
+```
+
+```{r}
+shapiro.test(manual)
+shapiro.test(auto)
+
+```
+
+### Comparison of variance
+```{r}
+var.test(auto, manual)
+```
+
+### T-Test
+```{r}
+mpg.test <- t.test(auto, manual, alternative="two.sided", paired=FALSE, var.equal = FALSE)
+mpg.test
+```
+```{r echo=FALSE}
+g <- ggplot(data = mtcars, aes(x = mpg, color=am))
+g <- g + geom_density(aes(fill=am), alpha=0.3)
+g <- g + geom_vline(aes(xintercept=mean.mpg, color=am))
+g <- g + geom_vline(xintercept=quantile(auto, .975))
+g
+```
+
+### Residual plots
+
+```{r message=FALSE, warning=FALSE}
+fit<-lm(mpg ~ am, mtcars)
+qplot(residuals(fit), color=mtcars$am, geom = 'density')
+
+mtcars$mpg.resid <- residuals(fit)
+mtcars.gathered <- mtcars %>% dplyr::select(am, mpg.resid, cyl, disp, hp, wt, qsec) %>% mutate_if(is.numeric, scale) %>% gather(key, value, -c(am,mpg.resid))
+ggplot(mtcars.gathered, aes(x = mpg.resid, y = value, color=am)) +
+  geom_point() +
+  facet_grid(. ~ key) 
+
+
+```
