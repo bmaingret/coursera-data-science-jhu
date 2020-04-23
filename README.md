@@ -25,5 +25,6 @@ The [capstone project](https://www.coursera.org/learn/data-science-project) can 
 * [08 - Practical Machine Learning](https://www.coursera.org/learn/practical-machine-learning)
 * [09 - Developing Data Products](https://www.coursera.org/learn/data-products)
 
+## Example of a data product with Shiny app
 
-[test link](09-developing-data-products\02-week3-assignement\fran)
+[France birth](09-developing-data-products\02-week3-assignement\france-birth.html)
