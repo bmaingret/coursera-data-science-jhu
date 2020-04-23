@@ -27,4 +27,4 @@ The [capstone project](https://www.coursera.org/learn/data-science-project) can 
 
 ## Example of a data product with Shiny app
 
-[France birth](https://bmaingret.github.io/coursera-data-science-jhu/09-developing-data-products/02-week3-assignement/france-birth.html)
+[France birth](https://bmaingret.github.io/coursera-data-science-jhu/09-developing-data-products/01-week2-assignement/leaflet_example.html)
