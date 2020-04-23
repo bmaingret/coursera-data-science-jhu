@@ -24,3 +24,6 @@ The [capstone project](https://www.coursera.org/learn/data-science-project) can 
 * [07 - Regression Models](https://www.coursera.org/learn/regression-models)
 * [08 - Practical Machine Learning](https://www.coursera.org/learn/practical-machine-learning)
 * [09 - Developing Data Products](https://www.coursera.org/learn/data-products)
+
+
+[test link](09-developing-data-products\02-week3-assignement\fran)
